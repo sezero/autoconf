@@ -1252,12 +1252,7 @@ AC_CACHE_CHECK([for working mmap], [ac_cv_func_mmap_fixed_mapped],
    VM page cache was not coherent with the file system buffer cache
    like early versions of FreeBSD and possibly contemporary NetBSD.)
    For shared mappings, we should conversely verify that changes get
-   propagated back to all the places they're supposed to be.
-
-   Grep wants private fixed already mapped.
-   The main things grep needs to know about mmap are:
-   * does it exist and is it safe to write into the mmap'd area
-   * how to use it (BSD variants)  */
+   propagated back to all the places they're supposed to be.  */
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -1266,11 +1261,16 @@ AC_CACHE_CHECK([for working mmap], [ac_cv_func_mmap_fixed_mapped],
 char *malloc ();
 #endif
 
-/* This mess was copied from the GNU getpagesize.h.  */
-#ifndef HAVE_GETPAGESIZE
+#ifndef getpagesize
+/* Prefer sysconf to the legacy getpagesize function, as getpagesize has
+   been removed from POSIX and is limited to page sizes that fit in 'int'.  */
 # ifdef _SC_PAGESIZE
 #  define getpagesize() sysconf(_SC_PAGESIZE)
-# else /* no _SC_PAGESIZE */
+# elif defined _SC_PAGE_SIZE
+#  define getpagesize() sysconf(_SC_PAGE_SIZE)
+# elif HAVE_GETPAGESIZE
+int getpagesize ();
+# else
 #  ifdef HAVE_SYS_PARAM_H
 #   include <sys/param.h>
 #   ifdef EXEC_PAGESIZE
@@ -1294,16 +1294,15 @@ char *malloc ();
 #  else /* no HAVE_SYS_PARAM_H */
 #   define getpagesize() 8192	/* punt totally */
 #  endif /* no HAVE_SYS_PARAM_H */
-# endif /* no _SC_PAGESIZE */
-
-#endif /* no HAVE_GETPAGESIZE */
+# endif
+#endif
 
 int
 main ()
 {
   char *data, *data2, *data3;
   const char *cdata2;
-  int i, pagesize;
+  long i, pagesize;
   int fd, fd2;
 
   pagesize = getpagesize ();
