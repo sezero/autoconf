@@ -2172,7 +2172,7 @@ fi
 #
 # Determine whether the C/C++ compiler supports the "restrict" keyword
 # introduced in ANSI C99, or an equivalent.  Define "restrict" to the alternate
-# spelling, if any, in pre-C99 C and in C++; this should work in compilers of
+# spelling, if any, in non-C99 C and in C++; this should work in compilers of
 # the same family, and in the presence of varying compiler options.  If only
 # plain "restrict" works, do nothing.  Here are some variants:
 # - GCC-compatible compilers support both __restrict and __restrict__
@@ -2205,9 +2205,12 @@ AC_DEFUN([AC_C_RESTRICT],
   ])
  AH_VERBATIM([restrict],
 [/* Define to the equivalent of the C99 'restrict' keyword, or to
-   nothing if this is not supported.  Do not define if restrict is
-   supported directly.  */
-#if ! (defined __STDC_VERSION__ && 199901L <= __STDC_VERSION__)
+   nothing if this is not supported.  In particular it is not supported
+   in MSVC 14.44 and in g++ 7 on Solaris 11, although these compilers
+   define __STDC_VERSION__ to 199901L.
+   Do not define if restrict is supported directly.  */
+#if ! (defined __STDC_VERSION__ && 199901L <= __STDC_VERSION__ \
+       && !defined _MSC_VER && !defined __cplusplus)
 #undef restrict
 #endif
 /* Work around a bug in older versions of Sun C++, which did not
@@ -2309,7 +2312,7 @@ AC_DEFUN([AC_C_FLEXIBLE_ARRAY_MEMBER],
       [Define to nothing if C supports flexible array members, and to
        1 if it does not.  That way, with a declaration like 'struct s
        { int n; double d@<:@FLEXIBLE_ARRAY_MEMBER@:>@; };', the struct hack
-       can be used with pre-C99 compilers.
+       can be used with non-C99 C compilers.
        When computing the size of such an object, don't use 'sizeof (struct s)'
        as it overestimates the size.  Use 'offsetof (struct s, d)' instead.
        Don't use 'offsetof (struct s, d@<:@0@:>@)', as this doesn't work with
